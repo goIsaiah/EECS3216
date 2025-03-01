@@ -1,0 +1,6 @@
+
+State Machine - |DE10_LITE_Golden_Top|pwm_modulated_sine:comb_3|current_state
+Name current_state.S_RESET current_state.S_UPDATE current_state.S_COUNT 
+current_state.S_RESET 0 0 0 
+current_state.S_COUNT 1 0 1 
+current_state.S_UPDATE 1 1 0 
