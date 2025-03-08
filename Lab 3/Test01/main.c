@@ -14,12 +14,9 @@ unsigned int segment_decoder[] = {
     0x71, 0x3D, 0x76
 };
 
-unsigned int digit_decoder[] = {0x07, 0x0B}; // Select left and right digit
-
+unsigned int digit_decoder[] = {0x07, 0x0B, 0x0D, 0x0E}; // For selecting digit positions
 unsigned char column, row;
 int num1 = 0, num2 = 0, opCode = 0, res = 0;
-int digits[2] = {0, 0}; // Stores ones and tens place
-int current_digit = 0; // Tracks which digit is active
 
 int main(void) {
     DDRB = 0xFF; // Make PORTB output (7-segment data)
@@ -32,7 +29,7 @@ int main(void) {
         do {
             PORTA |= 0x0F; // Set columns high
             row = PORTA & 0xF0; // Read rows
-        } while (row == 0x00); // Wait for keypress
+        } while (row == 0x00); // Wait until key is pressed
 
         do {
             do {
@@ -73,31 +70,35 @@ int main(void) {
 
         if (ipt >= '0' && ipt <= '9') {
             num1 = num1 * 10 + (ipt - '0'); // Handle multi-digit input
+            PORTB = segment_decoder[num1 % 10]; // Display last digit
         } else {
             if (ipt == 'C') { // Reset
                 num1 = 0; num2 = 0; opCode = 0; res = 0;
+                PORTB = 0x00;
             }
             if (ipt == 'D') { // Execute operation
                 if (opCode == 1) res = num1 + num2;
                 else if (opCode == 2) res = num1 * num2;
                 else res = num1;
 
-                digits[0] = res % 10;       // Ones place
-                digits[1] = (res / 10) % 10; // Tens place
+                int temp = res;
+                int digits[2] = {temp % 10, (temp / 10) % 10}; // Extract ones and tens
+
+                for (int i = 0; i < 50; i++) { // Cycle through digits for persistence
+                    PTP = digit_decoder[1]; // Select second digit position
+                    PORTB = segment_decoder[digits[1]];
+                    mSDelay(5);
+
+                    PTP = digit_decoder[0]; // Select first digit position
+                    PORTB = segment_decoder[digits[0]];
+                    mSDelay(5);
+                }
             }
-            if (ipt == 'A') { num2 = num1; num1 = 0; opCode = 1; } // Addition
-            if (ipt == 'B') { num2 = num1; num1 = 0; opCode = 2; } // Multiplication
+            if (ipt == 'A') { num2 = num1; num1 = 0; PORTB = segment_decoder[10]; opCode = 1; } // Addition
+            if (ipt == 'B') { num2 = num1; num1 = 0; PORTB = segment_decoder[11]; opCode = 2; } // Multiplication
         }
 
-        // Digit Multiplexing - Alternates between displaying the two digits
-        if (current_digit == 0) {
-            PTP = digit_decoder[0]; // Select left digit
-            PORTB = segment_decoder[digits[1]]; // Display tens place
-        } else {
-            PTP = digit_decoder[1]; // Select right digit
-            PORTB = segment_decoder[digits[0]]; // Display ones place
-        }
-        current_digit = 1 - current_digit; // Toggle active digit
+        PTP = digit_decoder[0];
 
         do {
             mSDelay(15);
