@@ -6,7 +6,7 @@
 // Global variables
 volatile unsigned int duty_cycle = 50; // Start at 0° (1ms pulse width)
 volatile unsigned char state = 1;  // 1 = soft start, 2 = soft stop
-volatile unsigned int counter_for_real_time_interrupt = 0;  
+volatile unsigned int counter_for_real_time_interrupt = 0;
 volatile unsigned int counter_for_real_time_interrupt_limit = 2;  // RTI limit (~87 ms per update)
 
 // Function to execute PWM jobs (move servo)
@@ -18,7 +18,7 @@ void execute_pwm_jobs(void) {
         } else {
             state = 2;  // Switch to soft stop
         }
-    } 
+    }
     else if (state == 2) {  // Soft stop (move servo back to 0°)
         if (duty_cycle > 50) {  // 50 corresponds to ~1ms pulse (0°)
             duty_cycle -= 5;  // Decrease pulse width
@@ -44,9 +44,9 @@ void INTERRUPT rti_isr(void) {
 
 // Initialize PWM Channel 1 for Servo Motor
 void pwm_init(void) {
-    PWME |= 0x02;      // Enable PWM Channel 1 (PWME1 = 1)
-    PWMPOL |= 0x02;    // PWM signal starts high (PPOL1 = 1)
-    PWMCLK &= ~0x02;   // Use Clock A for Channel 1 (PCLK1 = 0)
+    PWME |= 0x10;      // Enable PWM Channel 1 (PWME1 = 1)
+    PWMPOL |= 0x10;    // PWM signal starts high (PPOL1 = 1)
+    PWMCLK = 0x10;   // Use Clock A for Channel 1 (PCLK1 = 0)
     PWMPRCLK = 0x05;   // Clock A prescaler = 32 (12 MHz / 32 = 375 kHz)
     PWMPER1 = 200;     // Period = 200 counts (~20ms period)
     PWMDTY1 = duty_cycle;  // Start at 0° (1ms pulse width)
