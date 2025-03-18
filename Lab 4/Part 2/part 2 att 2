@@ -1,0 +1,75 @@
+#include <hcs12.h>
+#include <dbug12.h>
+#include "lcd.h"
+#include "util.h"
+
+// ADC configuration
+#define ADC_CHANNEL     2    // Using channel 2 (PAD2) for analog reading
+#define PROXIMITY_NEAR  600  // ADC reading threshold for "near" (adjust based on your sensor)
+#define PROXIMITY_FAR   300  // ADC reading threshold for "far" (adjust based on your sensor)
+
+// PWM configuration parameters
+#define PWM_MIN_DUTY      5   // 5% duty cycle (servo min position)
+#define PWM_MAX_DUTY      10  // 10% duty cycle (servo max position)
+#define PWM_PERIOD_VALUE  20000 // Servo PWM period (20ms, 50Hz)
+
+// Initialize ADC for analog proximity sensor reading
+void adc_init(void) {
+    ATD0CTL2 = 0x80;  // Enable ADC, no interrupt, no AFFC
+    ATD0CTL3 = 0x08;  // One conversion per sequence
+    ATD0CTL4 = 0x85;  // 10-bit resolution, 2 ADC clock periods per sample, 24MHz/12 = 2MHz clock
+}
+
+// Read analog value from ADC channel 2
+unsigned int adc_read(void) {
+    ATD0CTL5 = 0x20 | ADC_CHANNEL; // Start conversion on channel 2
+    while (!(ATD0STAT0 & 0x80));   // Wait for conversion to complete
+    return ATD0DR0;                // Return 10-bit result
+}
+
+// Initialize PWM for servo motor on channel 5 (pin J7 PP5)
+void pwm_init(void) {
+    DDRP |= 0x20;   // Set PP5 as output
+    PWMCLK = 0x20;  // Use clock A for channel 5
+    PWMPOL = 0x20;  // High polarity for channel 5
+    PWMCTL = 0x00;  // Standard PWM mode
+    PWMPRCLK = 0x03; // Prescaler for clock A
+    PWMPER5 = PWM_PERIOD_VALUE; // Set PWM period (20ms for servo control)
+    PWMDTY5 = PWM_MIN_DUTY; // Start at minimum duty cycle
+    PWME |= 0x20;  // Enable PWM channel 5
+}
+
+// Set the PWM duty cycle for the servo
+void pwm_set_duty(unsigned int duty) {
+    PWMDTY5 = duty;
+}
+
+// Update servo position based on ADC reading
+void update_servo_position(void) {
+    unsigned int adc_value = adc_read();
+    unsigned int duty;
+
+    if (adc_value > PROXIMITY_NEAR) {
+        duty = PWM_MAX_DUTY;  // Move servo to max position
+    } else if (adc_value < PROXIMITY_FAR) {
+        duty = PWM_MIN_DUTY;  // Move servo to min position
+    } else {
+        duty = PWM_MIN_DUTY + (adc_value - PROXIMITY_FAR) * (PWM_MAX_DUTY - PWM_MIN_DUTY) / (PROXIMITY_NEAR - PROXIMITY_FAR);
+    }
+    pwm_set_duty(duty);
+    DispStr(1, 1, "Duty: ");
+    DisplayNum(1, 7, duty);
+}
+
+// Main function
+int main(void) {
+    COPCTL = 0x00;
+    set_clock_24mhz();
+    adc_init();
+    pwm_init();
+    DispInit(2, 16);
+    DispClrScr();
+    while (1) {
+        update_servo_position();
+    }
+}
