@@ -1,0 +1,64 @@
+#include <hcs12.h>
+#include <dbug12.h>
+
+#include "lcd.h"
+#include "util.h"
+
+// PWM configuration parameters
+#define PWM_MIN_DUTY      5     // Minimum duty cycle (to keep servo active)
+#define PWM_MAX_DUTY      10    // Maximum duty cycle for servo
+#define PWM_PERIOD_VALUE  20000 // Approximate 50Hz PWM period for servo
+
+// Function to initialize PWM for servo control
+void pwm_init(void) {
+    DDRP |= 0x20;  // Set PP5 as output
+    PWMCLK = 0x20; // Use clock A for channel 5
+    PWMPOL = 0x20; // High polarity on channel 5
+    PWMCTL = 0x00; // Standard PWM operation
+    PWMPRCLK = 0x33; // Prescaler of 8
+    PWMPER5 = PWM_PERIOD_VALUE; // Set PWM period
+    PWMDTY5 = PWM_MIN_DUTY; // Start with minimum duty cycle
+    PWME |= 0x20; // Enable PWM on channel 5
+}
+
+// Function to read from ADC channel (e.g., proximity sensor on AN0)
+unsigned int adc_read(unsigned char channel) {
+    ATDCTL2 = 0x80;  // Enable ADC
+    ATDCTL3 = 0x08;  // One conversion per sequence
+    ATDCTL4 = 0x85;  // 10-bit resolution
+    ATDCTL5 = 0x20 | channel; // Start conversion on specified channel
+    while (!(ATDSTAT0 & 0x80)); // Wait for conversion to complete
+    return ATDDR0; // Return 10-bit ADC result
+}
+
+// Function to map ADC value to PWM duty cycle
+void update_servo_position(void) {
+    unsigned int adc_value = adc_read(0); // Read proximity sensor
+    unsigned char duty_cycle = PWM_MIN_DUTY + (adc_value * (PWM_MAX_DUTY - PWM_MIN_DUTY) / 1023);
+    PWMDTY5 = duty_cycle; // Set PWM duty cycle
+    DispStr(1, 1, "Duty: ");
+    display_duty_cycle(1, 7, duty_cycle);
+}
+
+// Function to display a three-digit duty cycle on the LCD
+void display_duty_cycle(int row, int col, int value) {
+    char duty_str[4];
+    duty_str[0] = '0' + (value / 100) % 10;
+    duty_str[1] = '0' + (value / 10) % 10;
+    duty_str[2] = '0' + value % 10;
+    duty_str[3] = '\0';
+    DispStr(row, col, duty_str);
+}
+
+int main(void) {
+    COPCTL = 0x00; // Disable watchdog timer
+    set_clock_24mhz();
+    pwm_init();
+    DispInit(2, 16);
+    DispClrScr();
+    DispStr(1, 1, "Servo Control");
+    
+    while (1) {
+        update_servo_position(); // Continuously adjust servo position
+    }
+}
