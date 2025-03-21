@@ -1,0 +1,75 @@
+#include <hcs12.h>
+#include <dbug12.h>
+
+// ADC configuration
+#define ADC_CHANNEL     2    // Using channel 2 (PAD2) for analog reading
+#define PROXIMITY_NEAR  600  // ADC threshold for "near"
+#define PROXIMITY_FAR   300  // ADC threshold for "far"
+
+// Servo PWM configuration
+#define PWM_PERIOD      40000  // Servo period (50Hz for 24MHz clock)
+#define SERVO_MIN       1000   // Min pulse width (~1ms)
+#define SERVO_MAX       2000   // Max pulse width (~2ms)
+#define SERVO_STEP      50     // Step size for gradual movement
+
+// Current servo position
+volatile unsigned int servo_position = 1500;
+
+// Initialize ADC
+void adc_init(void) {
+    ATD0CTL2 = 0x80;  // Enable ADC
+    ATD0CTL3 = 0x08;  // One conversion per sequence
+    ATD0CTL4 = 0x85;  // 10-bit resolution, 2MHz clock
+}
+
+// Read analog value from ADC channel
+unsigned int adc_read(void) {
+    ATD0CTL5 = 0x20 | ADC_CHANNEL; // Start conversion on channel 2
+    while (!(ATD0STAT0 & 0x80));  // Wait for conversion complete
+    return ATD0DR0;  // Read result
+}
+
+// Initialize PWM for servo control
+void pwm_init(void) {
+    DDRP |= 0x20;      // Set PP5 as output
+    PWMCLK = 0x20;     // Use clock A for channel 5
+    PWMPOL = 0x20;     // Active high polarity
+    PWMCTL = 0x00;     // Standard PWM mode
+    PWMPRCLK = 0x04;   // Prescaler for 24MHz -> 3MHz clock
+    PWMPER5 = PWM_PERIOD / 8;  // Set PWM period (~50Hz)
+    PWME |= 0x20;      // Enable PWM on channel 5
+}
+
+// Set servo position (pulse width in microseconds)
+void set_servo(unsigned int pulse_width) {
+    if (pulse_width < SERVO_MIN) pulse_width = SERVO_MIN;
+    if (pulse_width > SERVO_MAX) pulse_width = SERVO_MAX;
+    PWMDTY5 = (pulse_width * (PWM_PERIOD / 8)) / 20000;
+}
+
+// Move servo gradually
+void move_servo(unsigned int target) {
+    while (servo_position != target) {
+        if (servo_position < target) servo_position += SERVO_STEP;
+        else servo_position -= SERVO_STEP;
+        set_servo(servo_position);
+        ms_delay(50); // Small delay for smooth motion
+    }
+}
+
+int main(void) {
+    COPCTL = 0x00;   // Disable watchdog
+    set_clock_24mhz();
+    adc_init();
+    pwm_init();
+    
+    while (1) {
+        unsigned int sensor_value = adc_read();
+        if (sensor_value >= PROXIMITY_NEAR) {
+            move_servo(SERVO_MAX);
+        } else if (sensor_value <= PROXIMITY_FAR) {
+            move_servo(SERVO_MIN);
+        }
+        ms_delay(200); // Avoid excessive ADC reads
+    }
+}
