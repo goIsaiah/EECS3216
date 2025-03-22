@@ -29,10 +29,6 @@ volatile unsigned char state_complete = 0;
 volatile unsigned int counter_for_real_time_interrupt;
 volatile unsigned int counter_for_real_time_interrupt_limit;
 
-/*****************************************************************************
- *                           PWM FUNCTIONS
- *****************************************************************************/
-
 // Initialize PWM for motor control on channel 5 (pin J7 PP5)
 void pwm_init(void) {
     // Set PWM port to output mode (PP5)
@@ -77,10 +73,6 @@ void pwm_soft_stop(void) {
     DispStr(2, 1, "Soft Stop      ");
 }
 
-/*****************************************************************************
- *                       DISPLAY FUNCTIONS
- *****************************************************************************/
-
 // Helper function to display a three-digit duty cycle percentage on the LCD
 void display_duty_cycle(int row, int col, int value) {
     char duty_str[4];
@@ -94,10 +86,6 @@ void display_duty_cycle(int row, int col, int value) {
     // Display the string at the specified position
     DispStr(row, col, duty_str);
 }
-
-/*****************************************************************************
- *                   PWM STATE MACHINE UPDATE
- *****************************************************************************/
 
 // This function is called periodically via the RTI interrupt.
 void update_pwm_state_machine(void) {
@@ -136,10 +124,6 @@ void update_pwm_state_machine(void) {
     display_duty_cycle(1, 12, pwm_current_duty);
 }
 
-/*****************************************************************************
- *                       RTI & JOBS FUNCTIONS
- *****************************************************************************/
-
 // Function that is periodically called using the RTI interrupt.
 void execute_the_jobs(void) {
     pwm_update_counter++;
@@ -169,10 +153,6 @@ void rti_init(unsigned char rti_ctl_value, unsigned int counter_limit) {
     CRGINT |= 0x80;
     CRGFLG = 0x80;
 }
-
-/*****************************************************************************
- *                              MAIN FUNCTION
- *****************************************************************************/
 
 int main(void) {
     COPCTL = 0x00;
