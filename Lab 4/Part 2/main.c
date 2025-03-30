@@ -1,58 +1,114 @@
-#include <hidef.h>      /* for EnableInterrupts macro */
-#include "derivative.h" /* Include MCU specific definitions */
+#include<hcs12.h>
+#include<dbug12.h>
+#include "include/util.h"
 
-volatile unsigned int distance = 0; // Stores ADC-based distance measurement
+/* Function Prototypes */
+void init_pwm(void);
+void init_rti(unsigned char rti_value);
+void atd_init(void);
+void update_pwm_duty_cycle(unsigned int dutyCycle);
+void soft_stop_start_pwm(unsigned int dutyCycle);
+void change_servo(int angle);
+void get_ir_range_and_change_servo_motor_accordingly(unsigned int atd_result);
+int get_atd_result(void);
+void rti_handler(void);
+void init_buttons(void);
+void check_buttons_and_update_pwm(void);
 
-/* Initialize PWM for Servo Motor (PP1 - PWM Channel 1) */
-void PWM_Init(void) {
-    PWMPRCLK = 0x02;   // Set PWM clock prescaler to /4 (24MHz/4 = 6MHz)
-    PWMSCLA = 3;       // Further scale clock (6MHz/3 = 2MHz)
-    PWMCLK = 0x02;     // Select scaled clock for PWM1
-    PWMPER1 = 200;     // Set PWM period (1ms = 200 ticks at 2MHz)
-    PWMDTY1 = 15;      // Default to 0° (1ms pulse)
-    PWME |= 0x02;      // Enable PWM1 (PP1)
-}
+/* Constants */
+const unsigned int PWM_INTERUPT_MAX_COUNT_LIMIT = 6;
+const unsigned int PWM_RAMP_UP_TIME_MS = 300;
+const unsigned int MIN_PWM_DUTY_CYCLE = 10;
+const unsigned int MAX_PWM_DUTY_CYCLE = 100;
+const unsigned int MAX_PWM_SERVO_DUTY_CYCLE_REG_VALUE = 3000;
+const unsigned int NEUTRAL_PWM_SERVO_DUTY_CYCLE_REG_VALUE = 2250;
+const unsigned int MIN_PWM_SERVO_DUTY_CYCLE_REG_VALUE = 750;
+const unsigned int PWM_FREQ = 50;
+const unsigned int VOLTAGE_THRESHOLD_IR_RANGE_10CM = 400;
 
-/* Configure ADC for Proximity Sensor on PAD0 */
-void ADC_Init(void) {
-    ATDCTL2 = 0x80;  // Enable ADC module
-    ATDCTL3 = 0x08;  // Single result per sequence
-    ATDCTL4 = 0x85;  // 10-bit resolution, 8MHz ADC clock
-    ATDCTL5 = 0x80;  // Start conversion on Channel 0
-}
+/* Global Variables */
+volatile unsigned int PREV_PWM_DUTY_CYCLE = NEUTRAL_PWM_SERVO_DUTY_CYCLE_REG_VALUE;
+volatile unsigned int CURRENT_PWM_DUTY_CYCLE = NEUTRAL_PWM_SERVO_DUTY_CYCLE_REG_VALUE;
+volatile unsigned int rti_count;
 
-/* Interrupt Service Routine for ADC Conversion */
-interrupt 22 void ADC_ISR(void) {
-    distance = ATDDR0; // Read ADC result (10-bit value)
-    distance = (distance * 100) / 1023; // Scale 0-1023 to 0-100%
-}
-
-/* Start ADC Conversion (Trigger Reading) */
-void ADC_Start_Conversion(void) {
-    ATDCTL5 = 0x80; // Start ADC conversion on Channel 0
-}
-
-/* Move Servo to Specified Angle (0° to 180°) */
-void Servo_Move(unsigned int angle) {
-    unsigned int duty = (angle * 100) / 180 + 50; // Map 0-180° to 1ms-2ms pulse width
-    PWMDTY1 = duty;
-}
-
-/* Main Function - Monitors Distance & Controls Servo */
-void main(void) {
-    PWM_Init();  // Initialize PWM for servo control
-    ADC_Init();  // Initialize ADC module
-    EnableInterrupts; // Enable global interrupts
-
-    while (1) {
-        ADC_Start_Conversion(); // Trigger ADC conversion
-
-        if (distance < 50) { // If object is close (Threshold: 50%)
-            Servo_Move(90);  // Move Servo to 90°
-        } else {
-            Servo_Move(0);   // Move Servo to 0°
-        }
-
-        _delay_ms(500); // Delay to stabilize readings
+/**
+ * RTI Handler Function
+ * Handles periodic tasks, including checking buttons and updating the PWM duty cycle.
+ */
+void INTERRUPT rti_handler(void) {
+    if (rti_count == PWM_INTERUPT_MAX_COUNT_LIMIT) {
+        check_buttons_and_update_pwm();  // Check button presses and update duty cycle
+        rti_count = 0;
+    } else {
+        rti_count++;
     }
+}
+
+/**
+ * Initialize PTH0 and PTH1 buttons as inputs.
+ */
+void init_buttons(void) {
+    DDRH &= ~(0x03);  // Set PTH0 and PTH1 as inputs (0b00000011)
+}
+
+/**
+ * Check PTH0 and PTH1 buttons and update PWM duty cycle accordingly.
+ */
+void check_buttons_and_update_pwm(void) {
+    if (!(PTH & 0x01)) { // PTH0 pressed -> Increase duty cycle
+        if (CURRENT_PWM_DUTY_CYCLE < MAX_PWM_DUTY_CYCLE) {
+            CURRENT_PWM_DUTY_CYCLE += 5; // Increase by 5%
+        }
+    }
+    if (!(PTH & 0x02)) { // PTH1 pressed -> Decrease duty cycle
+        if (CURRENT_PWM_DUTY_CYCLE > MIN_PWM_DUTY_CYCLE) {
+            CURRENT_PWM_DUTY_CYCLE -= 5; // Decrease by 5%
+        }
+    }
+    update_pwm_duty_cycle(CURRENT_PWM_DUTY_CYCLE);
+}
+
+/**
+ * Update PWM Duty Cycle.
+ */
+void update_pwm_duty_cycle(unsigned int dutyCycle) {
+    int pwm_value = (MAX_PWM_SERVO_DUTY_CYCLE_REG_VALUE * dutyCycle) / MAX_PWM_DUTY_CYCLE;
+    PWMDTY0 = pwm_value >> 8;
+    PWMDTY1 = pwm_value & 0xFF;
+}
+
+/**
+ * Initialize PWM.
+ */
+static void init_pwm() {
+    PWMCLK = 0;
+    PWMPOL = 2;
+    PWMPRCLK = 4;
+    PWMCAE = 0;
+    PWMCTL = 0x1C;
+    PWMPER0 = 0x75;
+    PWMPER1 = 0x30;
+    PWMDTY0 = 0x08;
+    PWMDTY1 = 0xCA;
+}
+
+/**
+ * Initialize RTI.
+ */
+void init_rti(unsigned char rti_ctl_value) {
+    UserRTI = (unsigned int) &rti_handler;
+    RTICTL = rti_ctl_value;
+    rti_count = 0;
+    CRGINT |= 0x80;
+    CRGFLG = 0x80;
+}
+
+/**
+ * Main Function.
+ */
+void main(void) {
+    init_rti(0x63);
+    init_pwm();
+    atd_init();
+    init_buttons();
 }
