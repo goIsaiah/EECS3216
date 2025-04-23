@@ -84,7 +84,6 @@ wire data_valid;                // Signal that new data is available
 wire [7:0] received_data;       // Incoming UART byte
 wire [9:0] byte_count;
 reg state = 0; // FSM: 0=Find offset, 1=receive data
-integer i;
 
 // Instantiate UART Receiver
 uart_receiver OBD2_data(.clk(MAX10_CLK1_50), .rx(GPIO_33), .received_data(received_data), .DTR(data_valid), .byte_count(byte_count));
@@ -103,31 +102,11 @@ always @(posedge MAX10_CLK1_50) begin
 					state <= 1;
 				end
 			end
-		
-			1: begin
-				buffered_data[(byte_count-offset) % 6] = received_data;
-/*
-				index <= (byte_count) % 11;
-				//buffered_data[index] <= received_data;  // Store received byte
-				temp_data[index] <= received_data;  // Store received byte
-				if (index == 5 && temp_data[0] == 255 && temp_data[1] == 255) begin
-					for (i = 0; i<6; i = i + 1) begin
-						buffered_data[i] = temp_data[i];
-					end
-				end
-*/
-			end
+			1: buffered_data[(byte_count-offset) % 6] = received_data;
 		endcase
 	 end
 end
-/*
-	assign HEX0 = buffered_data[0];
-	assign HEX1 = buffered_data[1];
-	assign HEX2 = buffered_data[2];
-	assign HEX3 = buffered_data[3];
-	assign HEX4 = buffered_data[4];
-	assign HEX5 = buffered_data[5];
-*/
+
 light_number tach({buffered_data[2], buffered_data[3]}, MAX10_CLK1_50, LEDR);
 LED_number speed(buffered_data[4], HEX0, HEX1, HEX2);
 LED_number load(buffered_data[5], HEX3, HEX4, HEX5);
