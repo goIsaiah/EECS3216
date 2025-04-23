@@ -324,18 +324,6 @@ Private Sub sendArduinoDelayed(bytData As Byte)
 End Sub
 
 Public Sub sendArduinoMsg()
-    #If useold > 0 Then
-    Dim strData As String
-    Select Case mbytBluetoothRequest
-    Case Measurements.rpm
-        strData = lblRPM.Caption
-    Case Measurements.speed
-        strData = lblSpeed.Caption
-    Case Measurements.Load
-        strData = lblLoad.Caption
-    End Select
-    MSCommArduino.Output = CStr(CInt(Val(strData)))
-    #End If
     Dim intTach As Integer, intSpeed As Integer, intLoad As Integer, _
         bytTach1 As Byte, bytTach2 As Byte, bytSpeed As Byte, bytLoad As Byte
     intTach = Val(lblRPM.Caption)
