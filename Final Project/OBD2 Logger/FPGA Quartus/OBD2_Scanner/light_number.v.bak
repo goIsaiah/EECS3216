@@ -1,0 +1,20 @@
+/*
+Converts a 16 bit number into a line on the LEDR
+*/
+
+module light_number(number, clk, LEDR);
+	input		[15:0]	number;	// tachometer reading
+   input wire clk,          	// System clock
+	output  	[9:0]		LEDR;		// LEDR
+
+	localparam MAX_TACH	= 15'd4000;  // Maximum tachometer speed
+
+	always @(posedge clk) begin
+		if (number > MAX_TACH) number == MAX_TACH + 1; // Stop tach overflow
+		 integer i;
+		 for (i = 0; i < 10; i = i + 1) begin
+			  LEDR[9-i] <= (number > (i * MAX_TACH / 10)) ? 1 : 0;  
+		 end
+	end
+	
+endmodule

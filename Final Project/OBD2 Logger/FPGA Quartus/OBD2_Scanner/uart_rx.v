@@ -1,0 +1,81 @@
+/*
+Receives a single byte via UART.
+*/
+
+module uart_rx (
+    input wire clk,           // System clock
+    input wire rx,            // UART RX line
+    output reg [7:0] data,    // 8-bit received data
+    output reg data_ready,     // Signal indicating data is received
+	 output reg [9:0] byte_count // number of bytes received
+);
+
+    parameter BAUD_RATE = 57600;
+    parameter CLOCK_FREQ = 50000000; // FPGA clock frequency (50 MHz)
+    parameter BIT_PERIOD = CLOCK_FREQ / BAUD_RATE;
+
+    reg [15:0] clk_count = 0;
+    reg [3:0] bit_index = 0;
+    reg receiving = 0;
+    reg [7:0] rx_buffer = 0;
+    reg [1:0] state = 0; // State machine: 0=Idle, 1=Receiving, 2=Stop Bit Check
+	 
+    always @(posedge clk) begin
+        case (state)
+            0: begin // Idle state
+                data_ready <= 0;
+                if (rx == 0) begin // Detect start bit
+                    clk_count <= 0;
+                    bit_index <= 0;
+                    state <= 1; // Move to receiving state
+                end
+            end
+
+            1: begin // Receiving state
+                clk_count <= clk_count + 1;
+					 if (bit_index == 0) begin
+						 //wait for half width pulse
+						 if (clk_count == (BIT_PERIOD)/2) begin
+							clk_count <= 0;
+							bit_index <= bit_index + 1;
+						 end
+					 end
+                else if (clk_count == BIT_PERIOD) begin
+                    clk_count <= 0;
+                    rx_buffer[bit_index-1] <= rx;
+                    bit_index <= bit_index + 1;
+                    if (bit_index == 9) state <= 2; // Move to stop-bit check
+                end
+            end
+
+            2: begin // Stop Bit Check
+                if (rx == 1) begin // Verify stop bit
+                    data <= rx_buffer;
+                    data_ready <= 1;
+						  byte_count <= byte_count + 1;
+                end
+                state <= 0; // Reset to idle
+            end
+/*
+        2: begin // Stop Bit Check
+            if (rx == 1) begin // Verify stop bit
+                data <= rx_buffer;
+                //data_ready <= 1;
+					 state <= 3;
+            end
+            else begin
+					data_ready <= 0; // Reset signal if stop bit is invalid
+					state <= 0; // Return to idle
+				end
+        end
+		  
+		  3: begin
+				data_ready <= 1;
+				state <= 0;
+		  end
+		  
+        default: data_ready <= 0; // Ensure it's reset during other states
+		  */
+        endcase
+    end
+endmodule

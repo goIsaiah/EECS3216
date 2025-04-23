@@ -1,0 +1,16 @@
+Analysis & Synthesis Status : Successful - Mon Apr 21 21:23:53 2025
+Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
+Revision Name : OBD2
+Top-level Entity Name : DE10_LITE_Golden_Top
+Family : MAX 10
+Total logic elements : 841
+    Total combinational functions : 740
+    Dedicated logic registers : 170
+Total registers : 170
+Total pins : 80
+Total virtual pins : 0
+Total memory bits : 0
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0
+UFM blocks : 0
+ADC blocks : 0

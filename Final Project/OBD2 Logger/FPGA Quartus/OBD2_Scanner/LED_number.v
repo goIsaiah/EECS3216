@@ -1,0 +1,54 @@
+/*
+Takes a binary coded decimal number and outputs the value
+to the last 4 segments of the LED display.
+*/
+
+module LED_number(number, HEX0, HEX1, HEX2);
+	input	[7:0]	number;	// BCD number
+	output  [7:0]		HEX0;		// hex00 7-segment display output
+	output  [7:0]		HEX1;		// hex01 7-segment display output
+	output  [7:0]		HEX2;		// hex02 7-segment display output
+
+	reg 		[3:0] 	digit[2:0];	// BCD digits
+
+	// BCD Conversion
+	always @(number) begin
+		digit[0] <= number % 10;
+		digit[1] <= (number / 10) % 10;
+		digit[2] <= (number < 100) ? 4'd10 : (number / 100) % 10;
+/*		if (number < 100) 
+			digit[2] <= 4'd10; // zero suppression for leading digit
+		else
+			digit[2] <= (number / 100) % 10;
+*/			
+	end
+
+
+	segment_display digit0(.digit(digit[0]), .HEX_location(HEX0));
+	segment_display digit1(.digit(digit[1]), .HEX_location(HEX1));
+	segment_display digit2(.digit(digit[2]), .HEX_location(HEX2));
+endmodule
+
+
+module segment_display(digit, HEX_location);
+	input   		[3:0] digit;			// decimal digit
+	output reg	[7:0]	HEX_location;	// specific 7-segment display output
+
+	// 7-segment display decoder
+	always @(digit) begin
+		case (digit)
+			4'd0: HEX_location <= 8'b11000000;
+			4'd1: HEX_location <= 8'b11111001;
+			4'd2: HEX_location <= 8'b10100100;
+			4'd3: HEX_location <= 8'b10110000;
+			4'd4: HEX_location <= 8'b10011001;
+			4'd5: HEX_location <= 8'b10010010;
+			4'd6: HEX_location <= 8'b10000010;
+			4'd7: HEX_location <= 8'b11111000;
+			4'd8: HEX_location <= 8'b10000000;
+			4'd9: HEX_location <= 8'b10010000;
+			4'd10: HEX_location <= 8'b11111111;
+			//default: HEX_location <= 8'b11111111;
+		endcase
+	end
+endmodule

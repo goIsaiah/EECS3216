@@ -1,0 +1,1 @@
+Warning (10268): Verilog HDL information at DE10_LITE_Golden_Top.v(94): always construct contains both blocking and non-blocking assignments File: C:/ETA Software/DE-10 Lite/OBD2_Scanner/DE10_LITE_Golden_Top.v Line: 94

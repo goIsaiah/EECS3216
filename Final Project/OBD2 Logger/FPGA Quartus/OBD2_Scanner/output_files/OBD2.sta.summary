@@ -1,0 +1,185 @@
+------------------------------------------------------------
+Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1200mV 85C Model Setup 'MAX10_CLK1_50'
+Slack : -21.452
+TNS   : -1006.173
+
+Type  : Slow 1200mV 85C Model Setup 'buffered_data[4][0]'
+Slack : -18.239
+TNS   : -126.360
+
+Type  : Slow 1200mV 85C Model Setup 'buffered_data[5][0]'
+Slack : -17.757
+TNS   : -121.671
+
+Type  : Slow 1200mV 85C Model Setup 'buffered_data[4][1]'
+Slack : -17.520
+TNS   : -221.553
+
+Type  : Slow 1200mV 85C Model Setup 'buffered_data[5][1]'
+Slack : -16.679
+TNS   : -208.272
+
+Type  : Slow 1200mV 85C Model Hold 'MAX10_CLK1_50'
+Slack : 0.326
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'buffered_data[5][1]'
+Slack : 0.887
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'buffered_data[4][1]'
+Slack : 1.386
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'buffered_data[4][0]'
+Slack : 3.863
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'buffered_data[5][0]'
+Slack : 4.036
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'MAX10_CLK1_50'
+Slack : -3.000
+TNS   : -210.983
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'buffered_data[4][1]'
+Slack : -1.593
+TNS   : -50.502
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'buffered_data[5][1]'
+Slack : -1.526
+TNS   : -74.970
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'buffered_data[5][0]'
+Slack : 0.350
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'buffered_data[4][0]'
+Slack : 0.352
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Setup 'MAX10_CLK1_50'
+Slack : -19.352
+TNS   : -898.909
+
+Type  : Slow 1200mV 0C Model Setup 'buffered_data[4][0]'
+Slack : -16.449
+TNS   : -114.029
+
+Type  : Slow 1200mV 0C Model Setup 'buffered_data[5][0]'
+Slack : -15.968
+TNS   : -109.573
+
+Type  : Slow 1200mV 0C Model Setup 'buffered_data[4][1]'
+Slack : -15.781
+TNS   : -199.908
+
+Type  : Slow 1200mV 0C Model Setup 'buffered_data[5][1]'
+Slack : -14.972
+TNS   : -187.418
+
+Type  : Slow 1200mV 0C Model Hold 'MAX10_CLK1_50'
+Slack : 0.295
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'buffered_data[5][1]'
+Slack : 0.739
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'buffered_data[4][1]'
+Slack : 1.217
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'buffered_data[4][0]'
+Slack : 3.562
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'buffered_data[5][0]'
+Slack : 3.673
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'MAX10_CLK1_50'
+Slack : -3.000
+TNS   : -210.740
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'buffered_data[4][1]'
+Slack : -1.323
+TNS   : -43.826
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'buffered_data[5][1]'
+Slack : -1.249
+TNS   : -62.241
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'buffered_data[5][0]'
+Slack : 0.413
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'buffered_data[4][0]'
+Slack : 0.430
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Setup 'MAX10_CLK1_50'
+Slack : -9.648
+TNS   : -394.149
+
+Type  : Fast 1200mV 0C Model Setup 'buffered_data[4][0]'
+Slack : -8.699
+TNS   : -60.143
+
+Type  : Fast 1200mV 0C Model Setup 'buffered_data[4][1]'
+Slack : -8.370
+TNS   : -103.715
+
+Type  : Fast 1200mV 0C Model Setup 'buffered_data[5][0]'
+Slack : -8.320
+TNS   : -56.923
+
+Type  : Fast 1200mV 0C Model Setup 'buffered_data[5][1]'
+Slack : -7.921
+TNS   : -96.983
+
+Type  : Fast 1200mV 0C Model Hold 'MAX10_CLK1_50'
+Slack : 0.149
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'buffered_data[5][1]'
+Slack : 0.538
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'buffered_data[4][1]'
+Slack : 0.649
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'buffered_data[4][0]'
+Slack : 1.806
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'buffered_data[5][0]'
+Slack : 1.854
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'MAX10_CLK1_50'
+Slack : -3.000
+TNS   : -202.364
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'buffered_data[4][1]'
+Slack : -0.611
+TNS   : -12.708
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'buffered_data[5][1]'
+Slack : -0.589
+TNS   : -12.278
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'buffered_data[4][0]'
+Slack : 0.330
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'buffered_data[5][0]'
+Slack : 0.340
+TNS   : 0.000
+
+------------------------------------------------------------
